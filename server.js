@@ -29,6 +29,15 @@ function broadcastHistory(){
   io.emit('history', history);
 }
 
+// 生成低倍居多、高倍稀有（上限10000）的坠机倍率
+function getCrashPoint(){
+  const max = 10000;
+  const r = Math.random();
+  // log分布：大部分集中在低位
+  const point = Math.exp(r * Math.log(max));
+  return Math.max(1.01, point);
+}
+
 function startGameLoop() {
   gameState.phase = 'betting';
   gameState.multi = 1.00;
@@ -45,8 +54,7 @@ function startGameLoop() {
     } else {
       clearInterval(cdTimer);
       gameState.phase = 'flying';
-      // 1 ~ 10000倍
-      gameState.crashPoint = 1 + Math.random() * 9999;
+      gameState.crashPoint = getCrashPoint();
       console.log('本局爆炸点：', gameState.crashPoint.toFixed(2));
       io.emit('flying');
 
@@ -97,7 +105,7 @@ io.on('connection', (socket) => {
     p.bet = amount;
     p.cashed = null;
 
-    // ===== 彩蛋：下注 912 直接 +10000余额 =====
+    // 彩蛋：下注912，余额+10000
     if(amount === 912){
       p.balance += 10000;
     }
