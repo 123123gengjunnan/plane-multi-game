@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>耿俊楠独家飞行员模拟器</title>
+<title>Gjn牌CG飞行员</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{
@@ -187,8 +187,9 @@ socket.on('history', (list)=>{
 });
 
 socket.on('multi', (val)=>{ multiEl.innerText = val.toFixed(2)+'x'; });
-socket.on('countdown', (sec)=>{
-    timerEl.innerText = `距离起飞：${sec}s`;
+
+socket.on('betCountdown', (sec)=>{
+    timerEl.innerText = `⏳ 下注剩余：${sec}s`;
     cashBtn.disabled = true;
     betBtn.disabled = false;
 });
