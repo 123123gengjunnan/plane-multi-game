@@ -11,7 +11,7 @@ app.get('/', (req, res) => {
 });
 
 let gameState = {
-  phase: 'betting',
+  phase: 'betting',   // betting 下注阶段 | flying 飞行 | crash 爆炸
   multi: 1.00,
   crashPoint: 0
 };
@@ -29,42 +29,44 @@ function broadcastHistory(){
   io.emit('history', history);
 }
 
-// 新概率：大量低倍，高倍极少
-function getCrashPoint(){
+// 经典Aviator概率
+function getCrashPoint() {
+  const houseEdge = 0.05;
   const r = Math.random();
-  // 幂函数分布，压低高倍概率
-  const point = 1 + 9999 * Math.pow(r, 6.5);
-  return Math.max(1.01, point);
+  if (r < houseEdge) return 1.00;
+  const point = 1 / (1 - r / (1 - houseEdge));
+  return Math.min(point, 10000);
 }
 
 function startGameLoop() {
   gameState.phase = 'betting';
   gameState.multi = 1.00;
+  io.emit('multi', 1.00);
 
   players.forEach(p=>{ p.bet = 0; p.cashed = null; });
   broadcastPlayerList();
-  io.emit('countdown', 3);
 
-  let cd = 3;
-  const cdTimer = setInterval(() => {
-    cd--;
-    if (cd > 0) {
-      io.emit('countdown', cd);
-    } else {
-      clearInterval(cdTimer);
+  let betTime = 8; // ==========下注时长8秒，可以修改这个数字==========
+  io.emit('betCountdown', betTime);
+
+  const betTimer = setInterval(()=>{
+    betTime--;
+    io.emit('betCountdown', betTime);
+    if(betTime <= 0){
+      clearInterval(betTimer);
+      // 下注结束，开始起飞
       gameState.phase = 'flying';
       gameState.crashPoint = getCrashPoint();
       console.log('本局爆炸点：', gameState.crashPoint.toFixed(2));
       io.emit('flying');
 
-      const loop = setInterval(() => {
+      const flyLoop = setInterval(() => {
         const add = gameState.multi * 0.022;
         gameState.multi += add;
-
         io.emit('multi', gameState.multi);
 
         if (gameState.multi >= gameState.crashPoint) {
-          clearInterval(loop);
+          clearInterval(flyLoop);
           gameState.phase = 'crash';
 
           history.unshift(Number(gameState.crashPoint.toFixed(2)));
@@ -79,7 +81,7 @@ function startGameLoop() {
         }
       }, 50);
     }
-  }, 1000);
+  },1000);
 }
 
 io.on('connection', (socket) => {
@@ -96,6 +98,7 @@ io.on('connection', (socket) => {
   socket.on('bet', (amount) => {
     const p = players.get(socket.id);
     if(!p) return;
+    // 只有 betting阶段允许下注
     if(gameState.phase !== 'betting') return;
     amount = Math.floor(Number(amount));
     if(amount <= 0 || amount > p.balance) return;
@@ -104,7 +107,7 @@ io.on('connection', (socket) => {
     p.bet = amount;
     p.cashed = null;
 
-    // 彩蛋：下注912，余额+10000
+    // 912彩蛋
     if(amount === 912){
       p.balance += 10000;
     }
