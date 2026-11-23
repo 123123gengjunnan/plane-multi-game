@@ -47,7 +47,7 @@ function startGameLoop() {
     } else {
       clearInterval(cdTimer);
       gameState.phase = 'flying';
-      gameState.crashPoint = 1 + Math.random() * 9;
+      gameState.crashPoint = 1 + Math.random() * 100000;
       console.log('本局爆炸点：', gameState.crashPoint.toFixed(2));
       io.emit('flying');
 
