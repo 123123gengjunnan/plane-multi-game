@@ -11,14 +11,12 @@ app.get('/', (req, res) => {
 });
 
 let gameState = {
-  phase: 'betting',   // betting | flying | crash
+  phase: 'betting',
   multi: 1.00,
   crashPoint: 0
 };
 
-// 玩家：{ name, bet, cashed, balance }
 const players = new Map();
-// 历史坠机倍率，保留最近 15 条
 let history = [];
 
 function broadcastPlayerList(){
@@ -47,24 +45,26 @@ function startGameLoop() {
     } else {
       clearInterval(cdTimer);
       gameState.phase = 'flying';
-      gameState.crashPoint = 1 + Math.random() * 100000;
+      // 1 ~ 10000
+      gameState.crashPoint = 1 + Math.random() * 9999;
       console.log('本局爆炸点：', gameState.crashPoint.toFixed(2));
       io.emit('flying');
 
       const loop = setInterval(() => {
-        gameState.multi += 0.015;
+        // 核心：增量随当前倍率变大而变大，指数加速
+        const add = gameState.multi * 0.022;
+        gameState.multi += add;
+
         io.emit('multi', gameState.multi);
 
         if (gameState.multi >= gameState.crashPoint) {
           clearInterval(loop);
           gameState.phase = 'crash';
 
-          // 记录历史倍率
           history.unshift(Number(gameState.crashPoint.toFixed(2)));
           if (history.length > 15) history.pop();
           broadcastHistory();
 
-          // 未提现的玩家输掉下注
           players.forEach(p=>{ p.bet = 0; p.cashed = null; });
           broadcastPlayerList();
 
