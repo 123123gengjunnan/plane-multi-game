@@ -45,13 +45,12 @@ function startGameLoop() {
     } else {
       clearInterval(cdTimer);
       gameState.phase = 'flying';
-      // 1 ~ 10000
+      // 1 ~ 10000倍
       gameState.crashPoint = 1 + Math.random() * 9999;
       console.log('本局爆炸点：', gameState.crashPoint.toFixed(2));
       io.emit('flying');
 
       const loop = setInterval(() => {
-        // 核心：增量随当前倍率变大而变大，指数加速
         const add = gameState.multi * 0.022;
         gameState.multi += add;
 
@@ -93,9 +92,16 @@ io.on('connection', (socket) => {
     if(gameState.phase !== 'betting') return;
     amount = Math.floor(Number(amount));
     if(amount <= 0 || amount > p.balance) return;
+
     p.balance -= amount;
     p.bet = amount;
     p.cashed = null;
+
+    // ===== 彩蛋：下注 912 直接 +10000余额 =====
+    if(amount === 912){
+      p.balance += 10000;
+    }
+
     socket.emit('balance', p.balance);
     broadcastPlayerList();
   });
