@@ -2,56 +2,143 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>飞机暴冲</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{width:100%;height:100%;overflow:hidden;background:#0b0e14;color:#fff;font-family:-apple-system,PingFang SC,Microsoft YaHei,sans-serif;touch-action:none;}
-.nick-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
-#nickInput{padding:10px 14px;font-size:18px;width:220px;}
-#enterBtn{padding:10px 20px;font-size:18px;cursor:pointer;}
-#wrap{display:none;width:100%;height:100%;padding:30px;text-align:center;}
-#multi{font-size:80px;margin:30px 0;color:#4ade80;}
-#timer{font-size:24px;margin-bottom:20px;}
-.balance{font-size:20px;margin-bottom:10px;color:#fbbf24;}
-.bet-area{margin-top:40px;display:flex;gap:8px;justify-content:center;align-items:center;}
-#betInput{width:160px;padding:8px;font-size:18px;}
-button{padding:8px 16px;font-size:18px;cursor:pointer;}
-#cashoutBtn{background:#4ade80;color:#0b0e14;border:none;display:none;}
-.player-list{
-    position: fixed;
-    top:20px;
-    left:20px;
-    text-align:left;
-    background:rgba(255,255,255,0.08);
-    padding:12px;
-    border-radius:8px;
-    min-width:220px;
+html,body{
+    height:100%;
+    min-height:100vh;
+    overflow-x:hidden;
+    overflow-y:hidden;
+    background:radial-gradient(1200px 800px at 30% 20%,#1b2436 0%,#0b0e14 60%);
+    color:#fff;
+    font-family:-apple-system,PingFang SC,Microsoft YaHei,sans-serif;
+    touch-action:none;
 }
-.player-list h4{margin-bottom:8px;}
-.player-row{display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-size:14px;}
+
+/* 登录页 */
+.nick-wrap{
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:18px;z-index:99;
+}
+.nick-card{
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:20px;padding:36px 32px;
+    display:flex;flex-direction:column;gap:18px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.55);
+}
+.title{
+    font-size:28px;font-weight:700;letter-spacing:2px;
+    background:linear-gradient(90deg,#4ade80,#38bdf8);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+#nickInput{
+    padding:13px 16px;font-size:17px;width:240px;
+    border-radius:12px;border:1px solid rgba(255,255,255,0.15);
+    background:rgba(255,255,255,0.08);color:#fff;outline:none;
+}
+#nickInput:focus{border-color:#38bdf8;}
+
+/* 按钮 */
+.btn{
+    padding:13px 26px;font-size:17px;font-weight:600;
+    border:none;border-radius:12px;cursor:pointer;color:#fff;
+    transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;
+}
+.btn:active{transform:scale(0.96);}
+.btn-primary{
+    background:linear-gradient(135deg,#22c55e,#16a34a);
+    box-shadow:0 8px 24px rgba(34,197,94,0.35);
+}
+.btn-primary:hover{filter:brightness(1.1);}
+.btn-cash{
+    background:linear-gradient(135deg,#f59e0b,#d97706);
+    box-shadow:0 8px 24px rgba(245,158,11,0.35);
+}
+.btn-cash:hover{filter:brightness(1.1);}
+.btn:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
+
+/* 主界面 */
+#wrap{
+    position:fixed;top:0;left:0;right:0;bottom:0;
+    display:none;width:100%;height:100%;
+    padding:24px;text-align:center;overflow:auto;
+}
+#multi{
+    font-size:clamp(50px,18vw,80px);font-weight:800;margin:24px 0;
+    color:#4ade80;text-shadow:0 0 30px rgba(74,222,128,0.4);
+}
+#timer{font-size:20px;margin-bottom:18px;color:#94a3b8;}
+.balance{font-size:18px;margin-bottom:16px;color:#fbbf24;font-weight:600;}
+.bet-area{
+    margin-top:28px;display:flex;flex-wrap:wrap;
+    justify-content:center;align-items:center;gap:12px;
+}
+#betInput{
+    width:150px;padding:13px 14px;font-size:17px;
+    border-radius:12px;border:1px solid rgba(255,255,255,0.15);
+    background:rgba(255,255,255,0.08);color:#fff;outline:none;
+}
+
+/* 玩家列表 */
+.player-list{
+    position:fixed;top:20px;left:20px;text-align:left;
+    background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);
+    border-radius:16px;padding:16px;min-width:210px;max-width:45vw;
+}
+.player-list h4{margin-bottom:10px;font-size:15px;color:#cbd5e1;}
+.player-row{display:flex;justify-content:space-between;gap:14px;padding:4px 0;font-size:14px;}
 .bet-amount{color:#fbbf24;}
 .cashed{color:#4ade80;}
-.bal{color:#94a3b8;font-size:12px;}
+
+/* 历史记录 */
+.history{
+    position:fixed;top:20px;right:20px;text-align:left;
+    background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);
+    border-radius:16px;padding:16px;min-width:140px;max-width:45vw;
+}
+.history h4{margin-bottom:10px;font-size:15px;color:#cbd5e1;}
+.history-list{display:flex;flex-wrap:wrap;gap:8px;}
+.tag{
+    padding:5px 10px;border-radius:10px;font-size:13px;font-weight:600;
+    background:rgba(255,255,255,0.08);
+}
+.tag.low{color:#f87171;}
+.tag.mid{color:#fbbf24;}
+.tag.high{color:#4ade80;}
 </style>
 </head>
 <body>
 <div class="nick-wrap" id="nickArea">
-    <input type="text" id="nickInput" placeholder="输入昵称">
-    <button id="enterBtn">进入游戏房间</button>
+    <div class="nick-card">
+        <div class="title">飞机暴冲</div>
+        <input type="text" id="nickInput" placeholder="输入昵称">
+        <button class="btn btn-primary" id="enterBtn">进入游戏房间</button>
+    </div>
 </div>
+
 <div id="wrap">
     <div class="player-list">
         <h4>在线玩家</h4>
         <div id="playerBox"></div>
     </div>
 
-    <div class="balance">余额：<span id="myBalance">100</span></div>
+    <div class="history">
+        <h4>历史倍率</h4>
+        <div class="history-list" id="historyBox"></div>
+    </div>
+
+    <div class="balance">余额：<span id="balanceVal">100</span></div>
     <div id="multi">1.00x</div>
     <div id="timer">等待开局</div>
+
     <div class="bet-area">
-        <input type="number" id="betInput" placeholder="下注金额" value="10">
-        <button id="betBtn">下注</button>
-        <button id="cashoutBtn">提现</button>
+        <input type="number" id="betInput" placeholder="下注金额" value="10" min="1">
+        <button class="btn btn-primary" id="betBtn">下注</button>
+        <button class="btn btn-cash" id="cashBtn" disabled>提现</button>
     </div>
 </div>
 
@@ -66,11 +153,10 @@ const multiEl = document.getElementById('multi');
 const timerEl = document.getElementById('timer');
 const betInput = document.getElementById('betInput');
 const betBtn = document.getElementById('betBtn');
-const cashoutBtn = document.getElementById('cashoutBtn');
+const cashBtn = document.getElementById('cashBtn');
+const balanceVal = document.getElementById('balanceVal');
 const playerBox = document.getElementById('playerBox');
-const myBalance = document.getElementById('myBalance');
-
-let myInfo = null;
+const historyBox = document.getElementById('historyBox');
 
 enterBtn.onclick = function(){
     const name = nickInput.value.trim();
@@ -78,61 +164,52 @@ enterBtn.onclick = function(){
     socket.emit('join', name);
     nickArea.style.display = 'none';
     wrap.style.display = 'block';
+    wrap.offsetHeight;
 }
 
 socket.on('playerList', (list)=>{
     playerBox.innerHTML = list.map(p=>{
         let right;
-        if(p.cashed) right = `<span class="cashed">已提现 ${p.cashed.toFixed(2)}x</span>`;
+        if(p.cashed) right = `<span class="cashed">提现 ${p.cashed.toFixed(2)}x</span>`;
         else if(p.bet > 0) right = `<span class="bet-amount">下注 ${p.bet}</span>`;
-        else right = `<span>未下注</span>`;
-        return `<div class="player-row"><span>${p.name}</span>${right}</div>
-                <div class="player-row bal"><span></span><span>余额 ${p.balance}</span></div>`;
+        else right = `<span style="color:#64748b">未下注</span>`;
+        return `<div class="player-row"><span>${p.name}</span>${right}</div>`;
     }).join('');
+});
 
-    // 更新自己的余额
-    if(myInfo){
-        const me = list.find(p=>p.name===myInfo);
-        if(me) myBalance.innerText = me.balance;
-    }
-})
+socket.on('balance', (bal)=>{ balanceVal.innerText = bal; });
 
-socket.on('state', (s)=>{
-    if(s.phase === 'betting'){
-        betBtn.style.display = 'inline-block';
-        cashoutBtn.style.display = 'none';
-    }else if(s.phase === 'flying'){
-        betBtn.style.display = 'none';
-        cashoutBtn.style.display = 'inline-block';
-    }
-})
+socket.on('history', (list)=>{
+    historyBox.innerHTML = list.map(v=>{
+        let cls = v < 2 ? 'low' : (v < 5 ? 'mid' : 'high');
+        return `<span class="tag ${cls}">${v.toFixed(2)}x</span>`;
+    }).join('');
+});
 
-socket.on('multi', (val)=>{
-    multiEl.innerText = val.toFixed(2)+'x';
-})
+socket.on('multi', (val)=>{ multiEl.innerText = val.toFixed(2)+'x'; });
 socket.on('countdown', (sec)=>{
     timerEl.innerText = `距离起飞：${sec}s`;
-})
+    cashBtn.disabled = true;
+    betBtn.disabled = false;
+});
+socket.on('flying', ()=>{
+    timerEl.innerText = '飞行中…';
+    cashBtn.disabled = false;
+    betBtn.disabled = true;
+});
 socket.on('crash', ()=>{
     multiEl.style.color = '#f87171';
     timerEl.innerText = '爆炸！';
-    cashoutBtn.style.display = 'none';
-    setTimeout(()=>{
-        multiEl.style.color = '#4ade80';
-    },1200)
-})
+    cashBtn.disabled = true;
+    betBtn.disabled = true;
+    setTimeout(()=>{ multiEl.style.color = '#4ade80'; },1200);
+});
 
 betBtn.onclick = ()=>{
     let val = Number(betInput.value);
     if(val>0) socket.emit('bet', val);
-}
-cashoutBtn.onclick = ()=>{
-    socket.emit('cashout');
-    cashoutBtn.style.display = 'none';
-}
-
-// 记住自己昵称，用于列表匹配余额
-socket.on('joined', (name)=>{ myInfo = name; });
+};
+cashBtn.onclick = ()=>{ socket.emit('cashout'); };
 </script>
 </body>
 </html>
