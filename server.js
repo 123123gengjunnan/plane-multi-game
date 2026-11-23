@@ -17,18 +17,26 @@ let gameState = {
   multi: 1.00,
   crashPoint: 0
 };
-// 在线玩家表
+// 在线玩家：{ name, bet, cashed }
 const players = new Map();
 
 function broadcastPlayerList(){
-  const names = Array.from(players.values());
-  io.emit('playerList', names);
+  const list = Array.from(players.values()).map(p=>({
+    name: p.name,
+    bet: p.bet,
+    cashed: p.cashed
+  }));
+  io.emit('playerList', list);
 }
 
 function startGameLoop() {
   gameState.isRunning = false;
   gameState.multi = 1.00;
   io.emit('countdown', 3);
+
+  // 每局开始清空下注和提现标记
+  players.forEach(p=>{ p.bet = 0; p.cashed = null; });
+  broadcastPlayerList();
 
   let cd = 3;
   const cdTimer = setInterval(() => {
@@ -60,21 +68,24 @@ io.on('connection', (socket) => {
   console.log('玩家连接：', socket.id);
 
   socket.on('join', (nick) => {
-    players.set(socket.id, nick);
+    players.set(socket.id, { name: nick, bet: 0, cashed: null });
     broadcastPlayerList();
     console.log(nick, '进入房间');
   });
 
   socket.on('bet', (amount) => {
-    const nick = players.get(socket.id);
-    console.log(nick, '下注', amount);
+    const p = players.get(socket.id);
+    if(p && gameState.isRunning === false){
+      p.bet = amount;
+      broadcastPlayerList();
+    }
   });
 
   socket.on('disconnect', () => {
-    const nick = players.get(socket.id);
+    const p = players.get(socket.id);
+    if(p) console.log(p.name, '离开房间');
     players.delete(socket.id);
     broadcastPlayerList();
-    console.log(nick, '离开房间');
   });
 });
 
