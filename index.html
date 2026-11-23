@@ -23,8 +23,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0b0e14;color:#fff;f
     background:rgba(255,255,255,0.08);
     padding:12px;
     border-radius:8px;
+    min-width:180px;
 }
 .player-list h4{margin-bottom:8px;}
+.player-row{display:flex;justify-content:space-between;gap:12px;padding:3px 0;}
+.bet-amount{color:#fbbf24;}
+.cashed{color:#4ade80;}
 </style>
 </head>
 <body>
@@ -68,7 +72,13 @@ enterBtn.onclick = function(){
 }
 
 socket.on('playerList', (list)=>{
-    playerBox.innerHTML = list.map(n=>`<div>• ${n}</div>`).join('');
+    playerBox.innerHTML = list.map(p=>{
+        let right;
+        if(p.cashed) right = `<span class="cashed">已提现 ${p.cashed.toFixed(2)}x</span>`;
+        else if(p.bet > 0) right = `<span class="bet-amount">下注 ${p.bet}</span>`;
+        else right = `<span>未下注</span>`;
+        return `<div class="player-row"><span>${p.name}</span>${right}</div>`;
+    }).join('');
 })
 socket.on('multi', (val)=>{
     multiEl.innerText = val.toFixed(2)+'x';
